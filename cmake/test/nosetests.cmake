@@ -34,12 +34,20 @@ function(catkin_add_nosetests path)
     return()
   endif()
 
-  cmake_parse_arguments(_nose "" "TIMEOUT;WORKING_DIRECTORY" "DEPENDENCIES" ${ARGN})
+  cmake_parse_arguments(_nose "" "PROCESSES;TIMEOUT;WORKING_DIRECTORY" "DEPENDENCIES" ${ARGN})
   if(NOT _nose_TIMEOUT)
     set(_nose_TIMEOUT 60)
   endif()
   if(NOT _nose_TIMEOUT GREATER 0)
     message(FATAL_ERROR "nosetests() TIMEOUT argument must be a valid number of seconds greater than zero")
+  endif()
+  
+  # Handle number of processes
+  if(NOT _nose_PROCESSES)
+    set(_nose_PROCESSES 1)
+  endif()
+  if(NOT _nose_PROCESSES GREATER 0)
+    message(FATAL_ERROR "nosetests() PROCESSES argument must be a valid number of processes greater than zero")
   endif()
 
   # check that the directory exists
@@ -79,7 +87,7 @@ function(catkin_add_nosetests path)
   else()
     set(tests "${_path_name}")
   endif()
-  set(cmd ${cmd} "${NOSETESTS} -P --process-timeout=${_nose_TIMEOUT} ${tests} --with-xunit --xunit-file=${output_path}/nosetests-${output_file_name}.xml${_covarg}")
+  set(cmd ${cmd} "${NOSETESTS} -P --process-timeout=${_nose_TIMEOUT} --processes=${_nose_PROCESSES} ${tests} --with-xunit --xunit-file=${output_path}/nosetests-${output_file_name}.xml${_covarg}")
   catkin_run_tests_target("nosetests" ${output_file_name} "nosetests-${output_file_name}.xml" COMMAND ${cmd} DEPENDENCIES ${_nose_DEPENDENCIES} WORKING_DIRECTORY ${_nose_WORKING_DIRECTORY})
 endfunction()
 
